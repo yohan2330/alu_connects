@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import '../theme.dart';
-import 'main_tab_screen.dart';
 
 class LoginScreen extends StatelessWidget {
-  static const routeName = '/';
+  static const routeName = '/login';
 
   const LoginScreen({super.key});
 
@@ -27,7 +26,11 @@ class LoginScreen extends StatelessWidget {
                     color: AppColors.accent,
                     borderRadius: BorderRadius.circular(24),
                   ),
-                  child: const Icon(Icons.change_circle, size: 52, color: Colors.black),
+                  child: const Icon(
+                    Icons.change_circle,
+                    size: 52,
+                    color: Colors.black,
+                  ),
                 ),
               ),
               const SizedBox(height: 32),
@@ -44,24 +47,23 @@ class LoginScreen extends StatelessWidget {
               const Text(
                 'Connect. Collaborate. Lead Together.',
                 textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontSize: 16,
-                  color: AppColors.textSecondary,
-                ),
+                style: TextStyle(fontSize: 16, color: AppColors.textSecondary),
               ),
               const Spacer(),
               ElevatedButton.icon(
                 icon: const Icon(Icons.school),
                 label: const Text('Sign in with ALU Account'),
                 onPressed: () {
-                  Navigator.pushReplacementNamed(context, MainTabScreen.routeName);
+                  Navigator.pushNamed(context, '/alu-sign-in');
                 },
               ),
               const SizedBox(height: 16),
               Center(
                 child: Text(
                   'OR CONTINUE WITH',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               ),
               const SizedBox(height: 16),
@@ -72,10 +74,18 @@ class LoginScreen extends StatelessWidget {
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: AppColors.border),
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                       ),
-                      icon: const Icon(Icons.g_mobiledata, color: AppColors.textPrimary),
-                      label: const Text('Google', style: TextStyle(color: AppColors.textPrimary)),
+                      icon: const Icon(
+                        Icons.g_mobiledata,
+                        color: AppColors.textPrimary,
+                      ),
+                      label: const Text(
+                        'Google',
+                        style: TextStyle(color: AppColors.textPrimary),
+                      ),
                       onPressed: () {},
                     ),
                   ),
@@ -85,10 +95,18 @@ class LoginScreen extends StatelessWidget {
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: AppColors.border),
                         padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
                       ),
-                      icon: const Icon(Icons.apple, color: AppColors.textPrimary),
-                      label: const Text('Apple', style: TextStyle(color: AppColors.textPrimary)),
+                      icon: const Icon(
+                        Icons.apple,
+                        color: AppColors.textPrimary,
+                      ),
+                      label: const Text(
+                        'Apple',
+                        style: TextStyle(color: AppColors.textPrimary),
+                      ),
                       onPressed: () {},
                     ),
                   ),
@@ -96,11 +114,16 @@ class LoginScreen extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               GestureDetector(
-                onTap: () {},
+                onTap: () {
+                  Navigator.pushNamed(context, '/sign-up');
+                },
                 child: Text(
                   'New here? Create account',
                   textAlign: TextAlign.center,
-                  style: const TextStyle(color: AppColors.accent, fontWeight: FontWeight.bold),
+                  style: const TextStyle(
+                    color: AppColors.accent,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
               const SizedBox(height: 24),

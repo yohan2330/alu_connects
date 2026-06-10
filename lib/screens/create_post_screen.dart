@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
 import '../theme.dart';
 
 class CreatePostScreen extends StatefulWidget {
@@ -26,93 +27,120 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
           onPressed: () => Navigator.pop(context),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-        child: SingleChildScrollView(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
+      body: FutureBuilder<bool>(
+        future: AuthService.canPost(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState != ConnectionState.done) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final canPost = snapshot.data ?? false;
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
+            child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildToggleButton('Event', true),
-                  const SizedBox(width: 12),
-                  _buildToggleButton('Opportunity', false),
-                ],
-              ),
-              const SizedBox(height: 24),
-              _buildCoverCard(),
-              const SizedBox(height: 24),
-              const Text(
-                'TITLE',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                decoration: const InputDecoration(hintText: 'Post Title'),
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'DESCRIPTION',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                decoration: const InputDecoration(
-                  hintText: 'Tell the community about it...',
-                ),
-                maxLines: 4,
-              ),
-              const SizedBox(height: 24),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildInfoCard(
-                      icon: Icons.calendar_month,
-                      label: 'Oct 24, 2023',
+                  Row(
+                    children: [
+                      _buildToggleButton('Event', true),
+                      const SizedBox(width: 12),
+                      _buildToggleButton('Opportunity', false),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  if (!canPost)
+                    Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.border),
+                      ),
+                      child: const Text(
+                        'Only authorized roles can publish posts. Sign in as a club leader, event organizer, entrepreneur, student community, or academic team member.',
+                        style: TextStyle(color: AppColors.textSecondary),
+                      ),
+                    ),
+                  if (!canPost) const SizedBox(height: 24),
+                  _buildCoverCard(),
+                  const SizedBox(height: 24),
+                  const Text(
+                    'TITLE',
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w600,
                     ),
                   ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: _buildInfoCard(
-                      icon: Icons.access_time,
-                      label: '09:00 AM',
+                  const SizedBox(height: 8),
+                  TextField(
+                    decoration: const InputDecoration(hintText: 'Post Title'),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'DESCRIPTION',
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    decoration: const InputDecoration(
+                      hintText: 'Tell the community about it...',
+                    ),
+                    maxLines: 4,
+                  ),
+                  const SizedBox(height: 24),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildInfoCard(
+                          icon: Icons.calendar_month,
+                          label: 'Oct 24, 2023',
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _buildInfoCard(
+                          icon: Icons.access_time,
+                          label: '09:00 AM',
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  const Text(
+                    'LOCATION',
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  TextField(
+                    decoration: const InputDecoration(
+                      hintText: 'Kigali Campus',
+                    ),
+                  ),
+                  const SizedBox(height: 28),
+                  ElevatedButton(
+                    onPressed: canPost ? () {} : null,
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.upload_file, color: Colors.black),
+                        SizedBox(width: 10),
+                        Text('Publish'),
+                      ],
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              const Text(
-                'LOCATION',
-                style: TextStyle(
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                decoration: const InputDecoration(hintText: 'Kigali Campus'),
-              ),
-              const SizedBox(height: 28),
-              ElevatedButton(
-                onPressed: () {},
-                child: const Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.upload_file, color: Colors.black),
-                    SizedBox(width: 10),
-                    Text('Publish'),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }
