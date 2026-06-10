@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/auth_service.dart';
 import '../theme.dart';
 import 'create_post_screen.dart';
 import 'explore_screen.dart';
@@ -17,6 +18,8 @@ class MainTabScreen extends StatefulWidget {
 
 class _MainTabScreenState extends State<MainTabScreen> {
   int _selectedIndex = 0;
+  bool _canPost = false;
+  bool _hasLoadedPermission = false;
 
   static const List<Widget> _pages = <Widget>[
     HomeScreen(),
@@ -24,6 +27,21 @@ class _MainTabScreenState extends State<MainTabScreen> {
     ChatListScreen(),
     ProfileScreen(),
   ];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPermissions();
+  }
+
+  Future<void> _loadPermissions() async {
+    final canPost = await AuthService.canPost();
+    if (!mounted) return;
+    setState(() {
+      _canPost = canPost;
+      _hasLoadedPermission = true;
+    });
+  }
 
   void _onItemTapped(int index) {
     setState(() {
@@ -37,13 +55,15 @@ class _MainTabScreenState extends State<MainTabScreen> {
       extendBody: true,
       backgroundColor: AppColors.background,
       body: _pages[_selectedIndex],
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.pushNamed(context, CreatePostScreen.routeName);
-        },
-        backgroundColor: AppColors.accent,
-        child: const Icon(Icons.add, color: Colors.black),
-      ),
+      floatingActionButton: _hasLoadedPermission && _canPost
+          ? FloatingActionButton(
+              onPressed: () {
+                Navigator.pushNamed(context, CreatePostScreen.routeName);
+              },
+              backgroundColor: AppColors.accent,
+              child: const Icon(Icons.add, color: Colors.black),
+            )
+          : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomAppBar(
         color: AppColors.surface,

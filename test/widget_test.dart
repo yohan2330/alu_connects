@@ -7,12 +7,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
-import 'package:alu_connects/main.dart';
+import 'package:alu_connects/screens/login_screen.dart';
 
 void main() {
   testWidgets('Login screen loads', (WidgetTester tester) async {
-    await tester.pumpWidget(const ALUConnectApp());
+    await tester.pumpWidget(const MaterialApp(home: LoginScreen()));
 
     expect(find.text('ALU Intercampus Connect'), findsOneWidget);
     expect(find.text('Sign in with ALU Account'), findsOneWidget);

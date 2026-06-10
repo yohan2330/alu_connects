@@ -1,8 +1,37 @@
 import 'package:flutter/material.dart';
 import '../theme.dart';
+import '../services/auth_service.dart';
+import 'login_screen.dart';
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
+
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
+  String _name = 'User';
+  String? _email;
+  String? _role;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadProfile();
+  }
+
+  Future<void> _loadProfile() async {
+    final name = await AuthService.currentUserName();
+    final email = await AuthService.currentUserEmail();
+    final role = await AuthService.currentUserRole();
+    if (!mounted) return;
+    setState(() {
+      _name = name ?? 'User';
+      _email = email;
+      _role = role;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -31,14 +60,16 @@ class ProfileScreen extends StatelessWidget {
               const SizedBox(height: 18),
               CircleAvatar(radius: 42, backgroundColor: AppColors.accent, child: const Icon(Icons.person, size: 40, color: Colors.black)),
               const SizedBox(height: 16),
-              const Text('Aline Umuhoza', style: TextStyle(color: AppColors.textPrimary, fontSize: 22, fontWeight: FontWeight.bold)),
+              Text(_name, style: const TextStyle(color: AppColors.textPrimary, fontSize: 22, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 6),
+              Text(_role ?? 'Member', style: const TextStyle(color: AppColors.accent, fontWeight: FontWeight.w600)),
               const SizedBox(height: 6),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
-                children: const [
-                  Icon(Icons.circle, color: Colors.greenAccent, size: 12),
-                  SizedBox(width: 8),
-                  Text('Kigali Campus', style: TextStyle(color: AppColors.textSecondary)),
+                children: [
+                  const Icon(Icons.circle, color: Colors.greenAccent, size: 12),
+                  const SizedBox(width: 8),
+                  Text(_email ?? 'No email set', style: const TextStyle(color: AppColors.textSecondary)),
                 ],
               ),
               const SizedBox(height: 24),
@@ -53,6 +84,22 @@ class ProfileScreen extends StatelessWidget {
                     _ProfileStat(value: '87', label: 'Connections'),
                   ],
                 ),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.redAccent,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+                ),
+                onPressed: () async {
+                  final navigator = Navigator.of(context);
+                  await AuthService.signOut();
+                  if (!mounted) return;
+                  navigator.pushReplacementNamed(LoginScreen.routeName);
+                },
+                child: const Text('Sign Out'),
               ),
               const SizedBox(height: 24),
               Expanded(
