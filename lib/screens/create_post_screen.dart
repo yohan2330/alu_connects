@@ -149,7 +149,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   ),
                   const SizedBox(height: 8),
                   DropdownButtonFormField<String>(
-                    value: _selectedCategory,
+                    initialValue: _selectedCategory,
                     decoration: const InputDecoration(
                       border: OutlineInputBorder(),
                       filled: true,
