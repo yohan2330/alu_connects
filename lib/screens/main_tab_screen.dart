@@ -95,9 +95,10 @@ class _MainTabScreenState extends State<MainTabScreen> {
 
   Widget _buildNavButton({required int index, required IconData icon}) {
     final selected = _selectedIndex == index;
-    return IconButton(
-      onPressed: () => _onItemTapped(index),
-      icon: Container(
+    return InkWell(
+      onTap: () => _onItemTapped(index),
+      borderRadius: BorderRadius.circular(50),
+      child: Container(
         decoration: BoxDecoration(
           color: selected ? AppColors.accent : Colors.transparent,
           shape: BoxShape.circle,
@@ -105,6 +106,7 @@ class _MainTabScreenState extends State<MainTabScreen> {
         padding: const EdgeInsets.all(10),
         child: Icon(
           icon,
+          size: 24,
           color: selected ? Colors.black : AppColors.textSecondary,
         ),
       ),
