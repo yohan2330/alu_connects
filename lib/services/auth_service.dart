@@ -1,4 +1,6 @@
 import 'dart:async';
+import 'dart:convert';
+import 'package:crypto/crypto.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -25,43 +27,16 @@ class AuthService {
   static const _userRoleKey = 'user_role';
   static final _secure = FlutterSecureStorage();
 
+  static String _hash(String input) =>
+      sha256.convert(utf8.encode(input)).toString();
+
   static final List<AuthUser> _mockUsers = [
-    const AuthUser(
-      name: 'Aline Umuhoza',
-      email: 'aline@alu.edu',
-      password: 'password123',
-      role: 'Club Leader',
-    ),
-    const AuthUser(
-      name: 'Brian Mensah',
-      email: 'brian@alu.edu',
-      password: 'startup2026',
-      role: 'Entrepreneur',
-    ),
-    const AuthUser(
-      name: 'Chloe Kim',
-      email: 'chloe@alu.edu',
-      password: 'hackathon',
-      role: 'Event Organizer',
-    ),
-    const AuthUser(
-      name: 'Diana Ade',
-      email: 'diana@alu.edu',
-      password: 'community',
-      role: 'Student Community',
-    ),
-    const AuthUser(
-      name: 'Emmanuel N.',
-      email: 'emmanuel@alu.edu',
-      password: 'academic',
-      role: 'Academic Team',
-    ),
-    const AuthUser(
-      name: 'Fiona Okonkwo',
-      email: 'fiona@alu.edu',
-      password: 'member123',
-      role: 'Member',
-    ),
+    AuthUser(name: 'Aline Umuhoza',  email: 'aline@alu.edu',     password: _hash('password123'), role: 'Club Leader'),
+    AuthUser(name: 'Brian Mensah',   email: 'brian@alu.edu',     password: _hash('startup2026'), role: 'Entrepreneur'),
+    AuthUser(name: 'Chloe Kim',      email: 'chloe@alu.edu',     password: _hash('hackathon'),   role: 'Event Organizer'),
+    AuthUser(name: 'Diana Ade',      email: 'diana@alu.edu',     password: _hash('community'),   role: 'Student Community'),
+    AuthUser(name: 'Emmanuel N.',    email: 'emmanuel@alu.edu',  password: _hash('academic'),    role: 'Academic Team'),
+    AuthUser(name: 'Fiona Okonkwo', email: 'fiona@alu.edu',     password: _hash('member123'),   role: 'Member'),
   ];
 
   static const Set<String> _authorizedRoles = {
@@ -77,7 +52,7 @@ class AuthService {
 
     AuthUser? user;
     for (final u in _mockUsers) {
-      if (u.email == email && u.password == password) {
+      if (u.email == email && u.password == _hash(password)) {
         user = u;
         break;
       }
@@ -108,7 +83,7 @@ class AuthService {
       }
     }
 
-    final newUser = AuthUser(name: name, email: email, password: password, role: role);
+    final newUser = AuthUser(name: name, email: email, password: _hash(password), role: role);
     _mockUsers.add(newUser);
 
     final prefs = await SharedPreferences.getInstance();
