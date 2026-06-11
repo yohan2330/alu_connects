@@ -1,222 +1,346 @@
 import 'package:flutter/material.dart';
 import '../theme.dart';
-import 'event_detail_screen.dart';
+import 'communities_screen.dart';
+import 'events_screen.dart';
+import 'jobs_screen.dart';
+import 'mentors_screen.dart';
+import 'opportunities_screen.dart';
+import 'resources_screen.dart';
 
-class ExploreScreen extends StatefulWidget {
+class ExploreScreen extends StatelessWidget {
   const ExploreScreen({super.key});
 
-  @override
-  State<ExploreScreen> createState() => _ExploreScreenState();
-}
+  static const _categories = [
+    _Category(label: 'Events',        subtitle: '18 upcoming',   icon: Icons.event_rounded,           color: Color(0xFFE65100), route: EventsScreen.routeName),
+    _Category(label: 'Opportunities', subtitle: '24 open',       icon: Icons.emoji_events_rounded,    color: Color(0xFF00695C), route: OpportunitiesScreen.routeName),
+    _Category(label: 'Communities',   subtitle: '7 active clubs',icon: Icons.group_rounded,           color: Color(0xFFB8860B), route: CommunitiesScreen.routeName),
+    _Category(label: 'Jobs',          subtitle: '12 listings',   icon: Icons.business_center_rounded, color: Color(0xFF1B5E20), route: JobsScreen.routeName),
+    _Category(label: 'Mentors',       subtitle: '50+ alumni',    icon: Icons.school_rounded,          color: Color(0xFF4A148C), route: MentorsScreen.routeName),
+    _Category(label: 'Resources',     subtitle: '100+ docs',     icon: Icons.menu_book_rounded,       color: Color(0xFF0D47A1), route: ResourcesScreen.routeName),
+  ];
 
-class _ExploreScreenState extends State<ExploreScreen> {
-  String _selectedTab = 'All';
+  static const _trending = [
+    _TrendingTopic(label: '#Hackathon2026', count: '340'),
+    _TrendingTopic(label: '#PitchNight',    count: '218'),
+    _TrendingTopic(label: '#ALULeads',      count: '195'),
+    _TrendingTopic(label: '#WomenInTech',   count: '170'),
+    _TrendingTopic(label: '#AfricanAI',     count: '143'),
+  ];
+
+  static const _people = [
+    _Person(name: 'Chisom O.', role: 'Software Eng.', initials: 'CO', color: Color(0xFF26A69A)),
+    _Person(name: 'Fatima R.', role: 'Entrepreneur',  initials: 'FR', color: Color(0xFFF9A825)),
+    _Person(name: 'James K.',  role: 'Professor',     initials: 'JK', color: Color(0xFFEF5350)),
+    _Person(name: 'Nadia T.',  role: 'Product Mgr.',  initials: 'NT', color: Color(0xFF7B1FA2)),
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppColors.background,
+      backgroundColor: AppColors.of(context).background,
       body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Explore', style: TextStyle(color: AppColors.textPrimary, fontSize: 28, fontWeight: FontWeight.bold)),
-                  IconButton(
-                    icon: const Icon(Icons.notifications, color: AppColors.textPrimary),
-                    onPressed: () {},
-                  ),
-                ],
-              ),
-              const SizedBox(height: 16),
-              Container(
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(18),
-                ),
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  children: const [
-                    Icon(Icons.search, color: AppColors.textSecondary),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: Text('Search opportunities...', style: TextStyle(color: AppColors.textSecondary)),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 18),
-              Row(
-                children: [
-                  _buildCategoryChip('All'),
-                  const SizedBox(width: 10),
-                  _buildCategoryChip('Events'),
-                  const SizedBox(width: 10),
-                  _buildCategoryChip('Opportunities'),
-                ],
-              ),
-              const SizedBox(height: 24),
-              _buildSectionHeader('Recommended for you'),
-              const SizedBox(height: 14),
-              _buildFeaturedCard(context),
-              const SizedBox(height: 24),
-              _buildSectionHeader('Latest Updates'),
-              const SizedBox(height: 14),
-              Expanded(child: _buildLatestUpdates()),
-            ],
-          ),
+        child: CustomScrollView(
+          slivers: [
+            SliverToBoxAdapter(child: _buildHeader(context)),
+            SliverToBoxAdapter(child: _buildSearchBar(context)),
+            SliverToBoxAdapter(child: _buildCategoriesSection(context)),
+            SliverToBoxAdapter(child: _buildTrendingSection(context)),
+            SliverToBoxAdapter(child: _buildPeopleSection(context)),
+            const SliverToBoxAdapter(child: SizedBox(height: 100)),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildCategoryChip(String label) {
-    final selected = _selectedTab == label;
-    return GestureDetector(
-      onTap: () => setState(() => _selectedTab = label),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 18),
-        decoration: BoxDecoration(
-          color: selected ? AppColors.accent : AppColors.surface,
-          borderRadius: BorderRadius.circular(16),
-        ),
-        child: Text(label, style: TextStyle(color: selected ? Colors.black : AppColors.textSecondary)),
-      ),
-    );
-  }
-
-  Widget _buildSectionHeader(String title) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(title, style: const TextStyle(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.bold)),
-        Text('See all', style: const TextStyle(color: AppColors.accent, fontWeight: FontWeight.w600)),
-      ],
-    );
-  }
-
-  Widget _buildFeaturedCard(BuildContext context) {
-    return GestureDetector(
-      onTap: () {
-        Navigator.pushNamed(context, EventDetailScreen.routeName);
-      },
-      child: Container(
-        height: 210,
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(24),
-          image: const DecorationImage(
-            image: NetworkImage('https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=900&q=80'),
-            fit: BoxFit.cover,
-          ),
-        ),
-        child: Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            gradient: const LinearGradient(
-              colors: [Color.fromRGBO(0, 0, 0, 0.55), Colors.transparent],
-              begin: Alignment.bottomCenter,
-              end: Alignment.topCenter,
-            ),
-          ),
-          padding: const EdgeInsets.all(18),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.end,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  _buildTag('HOT', AppColors.accent),
-                  const SizedBox(width: 8),
-                  _buildTag('Workshop', Colors.blueAccent),
-                ],
-              ),
-              const SizedBox(height: 10),
-              const Text('Innovation Summit ’24', style: TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 6),
-              const Text('Kigali • Tomorrow', style: TextStyle(color: Colors.white70)),
-              const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
-                decoration: BoxDecoration(
-                  color: AppColors.accent,
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: const Text('View details', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold)),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTag(String label, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(12)),
-      child: Text(label, style: const TextStyle(color: Colors.black, fontSize: 12, fontWeight: FontWeight.bold)),
-    );
-  }
-
-  Widget _buildLatestUpdates() {
-    final items = [
-      _UpdateItem(title: 'Google Africa Internship', subtitle: 'Mauritius • Application Open', label: 'Opportunity', color: Colors.blueAccent),
-      _UpdateItem(title: 'ALU Cultural Night', subtitle: 'Kigali • Main Hall', label: 'Event', color: Colors.greenAccent),
-      _UpdateItem(title: 'Robotics Club Meeting', subtitle: 'Campus Lab • 7:00 PM', label: 'Club Update', color: Colors.orangeAccent),
-    ];
-
-    return ListView.separated(
-      itemCount: items.length,
-      separatorBuilder: (context, index) => const SizedBox(height: 14),
-      itemBuilder: (context, index) => items[index],
-    );
-  }
-}
-
-class _UpdateItem extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final String label;
-  final Color color;
-
-  const _UpdateItem({required this.title, required this.subtitle, required this.label, required this.color});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(20),
-      ),
+  Widget _buildHeader(BuildContext context) {
+    final col = AppColors.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Discover',
+                  style: TextStyle(color: col.textPrimary, fontSize: 28, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 2),
+              Text('What are you looking for?',
+                  style: TextStyle(color: col.textSecondary, fontSize: 13)),
+            ],
+          ),
           Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(14)),
-            child: const Icon(Icons.event, color: Colors.black),
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(color: col.surface, borderRadius: BorderRadius.circular(14)),
+            child: Icon(Icons.notifications_none_rounded, color: col.textPrimary, size: 22),
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(label, style: const TextStyle(color: AppColors.textSecondary, fontSize: 12, fontWeight: FontWeight.w600)),
-                const SizedBox(height: 6),
-                Text(title, style: const TextStyle(color: AppColors.textPrimary, fontSize: 16, fontWeight: FontWeight.w600)),
-                const SizedBox(height: 4),
-                Text(subtitle, style: const TextStyle(color: AppColors.textSecondary)),
-              ],
-            ),
-          ),
-          const Icon(Icons.arrow_forward_ios, color: AppColors.textSecondary, size: 16),
         ],
       ),
     );
   }
+
+  Widget _buildSearchBar(BuildContext context) {
+    final col = AppColors.of(context);
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
+      child: Container(
+        decoration: BoxDecoration(color: col.surface, borderRadius: BorderRadius.circular(18)),
+        padding:    const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+        child: Row(
+          children: [
+            Icon(Icons.search_rounded,  color: col.textSecondary),
+            const SizedBox(width: 12),
+            Expanded(child: Text('Search events, clubs, people...',
+                style: TextStyle(color: col.textSecondary, fontSize: 14))),
+            Icon(Icons.tune_rounded, color: col.textSecondary, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCategoriesSection(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Browse',
+              style: TextStyle(color: AppColors.of(context).textPrimary, fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 16),
+          for (int row = 0; row < 3; row++) ...[
+            if (row > 0) const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(child: _CategoryCard(cat: _categories[row * 2])),
+                const SizedBox(width: 12),
+                Expanded(child: _CategoryCard(cat: _categories[row * 2 + 1])),
+              ],
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTrendingSection(BuildContext context) {
+    final col = AppColors.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 28),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+            child: Row(
+              children: [
+                Icon(Icons.local_fire_department_rounded, color: col.accent, size: 20),
+                const SizedBox(width: 8),
+                Text('Trending Now',
+                    style: TextStyle(color: col.textPrimary, fontSize: 18, fontWeight: FontWeight.bold)),
+              ],
+            ),
+          ),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: _trending.map((t) => Padding(
+                padding: const EdgeInsets.only(right: 10),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+                  decoration: BoxDecoration(
+                    color:        col.surface,
+                    borderRadius: BorderRadius.circular(14),
+                    border:       Border.all(color: col.border),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(t.label, style: TextStyle(color: col.textPrimary, fontWeight: FontWeight.w600, fontSize: 13)),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 2),
+                        decoration: BoxDecoration(
+                          color:        col.accent.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(t.count, style: TextStyle(color: col.accent, fontSize: 11, fontWeight: FontWeight.w700)),
+                      ),
+                    ],
+                  ),
+                ),
+              )).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPeopleSection(BuildContext context) {
+    final col = AppColors.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text('People to Follow',
+                    style: TextStyle(color: col.textPrimary, fontSize: 18, fontWeight: FontWeight.bold)),
+                Text('See all',
+                    style: TextStyle(color: col.accent, fontWeight: FontWeight.w600, fontSize: 13)),
+              ],
+            ),
+          ),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            padding: const EdgeInsets.symmetric(horizontal: 20),
+            child: Row(
+              children: _people.map((p) => Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: _PersonCard(person: p),
+              )).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _CategoryCard extends StatelessWidget {
+  final _Category cat;
+  const _CategoryCard({required this.cat});
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(context, cat.route),
+      child: Container(
+        height: 100,
+        decoration: BoxDecoration(
+          color:        cat.color,
+          borderRadius: BorderRadius.circular(20),
+        ),
+        child: Stack(
+          children: [
+            Positioned(
+              right: -10, top: -10,
+              child: Icon(cat.icon, size: 80, color: Colors.white.withValues(alpha: 0.12)),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment:  MainAxisAlignment.end,
+                children: [
+                  Icon(cat.icon, color: Colors.white, size: 22),
+                  const SizedBox(height: 6),
+                  Text(cat.label,    style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14)),
+                  const SizedBox(height: 2),
+                  Text(cat.subtitle, style: TextStyle(color: Colors.white.withValues(alpha: 0.7), fontSize: 11)),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PersonCard extends StatefulWidget {
+  final _Person person;
+  const _PersonCard({required this.person});
+
+  @override
+  State<_PersonCard> createState() => _PersonCardState();
+}
+
+class _PersonCardState extends State<_PersonCard> {
+  bool _following = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final col = AppColors.of(context);
+    final p   = widget.person;
+    return Container(
+      width:   130,
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(color: col.surface, borderRadius: BorderRadius.circular(18)),
+      child: Column(
+        children: [
+          CircleAvatar(
+            radius:          26,
+            backgroundColor: p.color.withValues(alpha: 0.2),
+            child: Text(p.initials, style: TextStyle(color: p.color, fontWeight: FontWeight.bold, fontSize: 15)),
+          ),
+          const SizedBox(height: 10),
+          Text(p.name, style: TextStyle(color: col.textPrimary,   fontWeight: FontWeight.w600, fontSize: 13), textAlign: TextAlign.center),
+          const SizedBox(height: 3),
+          Text(p.role, style: TextStyle(color: col.textSecondary, fontSize: 11), textAlign: TextAlign.center),
+          const SizedBox(height: 12),
+          GestureDetector(
+            onTap: () => setState(() => _following = !_following),
+            child: AnimatedContainer(
+              duration:  const Duration(milliseconds: 180),
+              width:     double.infinity,
+              padding:   const EdgeInsets.symmetric(vertical: 7),
+              decoration: BoxDecoration(
+                color:        _following ? col.surface : col.accent,
+                borderRadius: BorderRadius.circular(10),
+                border:       _following ? Border.all(color: col.border) : null,
+              ),
+              child: Center(
+                child: Text(
+                  _following ? 'Following' : 'Follow',
+                  style: TextStyle(
+                    color:      _following ? col.textSecondary : Colors.black,
+                    fontWeight: FontWeight.w600,
+                    fontSize:   12,
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _Category {
+  final String   label;
+  final String   subtitle;
+  final IconData icon;
+  final Color    color;
+  final String   route;
+
+  const _Category({
+    required this.label,
+    required this.subtitle,
+    required this.icon,
+    required this.color,
+    required this.route,
+  });
+}
+
+class _TrendingTopic {
+  final String label;
+  final String count;
+  const _TrendingTopic({required this.label, required this.count});
+}
+
+class _Person {
+  final String name;
+  final String role;
+  final String initials;
+  final Color  color;
+  const _Person({required this.name, required this.role, required this.initials, required this.color});
 }
