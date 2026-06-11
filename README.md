@@ -1,12 +1,4 @@
-# ALU Connect
-
-A social networking app for the African Leadership University community built with Flutter.
-
-[![Flutter](https://img.shields.io/badge/Flutter-3.x-blue?logo=flutter)](https://flutter.dev/)
-[![Dart](https://img.shields.io/badge/Dart-3.11.5+-00A8E1?logo=dart)](https://dart.dev/)
-[![License](https://img.shields.io/badge/License-MIT-green)](LICENSE)
-
-## Overview
+# ALU Connect Overview
 
 ALU Connect is a Flutter-based platform that brings the ALU community together. It lets you connect with other students, share what's on your mind, discover events happening around campus, and message friends directly.
 
