@@ -11,6 +11,7 @@ import 'screens/events_screen.dart';
 import 'screens/jobs_screen.dart';
 import 'screens/mentors_screen.dart';
 import 'screens/opportunities_screen.dart';
+import 'screens/notifications_screen.dart';
 import 'screens/resources_screen.dart';
 import 'screens/signup_screen.dart';
 import 'services/auth_service.dart';
@@ -47,6 +48,7 @@ class ALUConnectApp extends StatelessWidget {
         JobsScreen.routeName: (_) => const JobsScreen(),
         MentorsScreen.routeName: (_) => const MentorsScreen(),
         ResourcesScreen.routeName: (_) => const ResourcesScreen(),
+        NotificationsScreen.routeName: (_) => const NotificationsScreen(),
       },
     ),
     );

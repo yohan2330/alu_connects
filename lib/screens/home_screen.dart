@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 import '../theme.dart';
+import '../services/auth_service.dart';
+import 'communities_screen.dart';
+import 'event_detail_screen.dart';
+import 'events_screen.dart';
+import 'notifications_screen.dart';
+import 'opportunities_screen.dart';
 
 enum _ItemType { event, opportunity, update }
 
@@ -47,6 +53,9 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  String? _userName;
+  String? _userRole;
+
   static const _clubs = [
     _Club('Debate',   Color(0xFF5C6BC0), Icons.record_voice_over_rounded),
     _Club('Entrep.',  Color(0xFFF9A825), Icons.lightbulb_rounded),
@@ -124,6 +133,23 @@ class _HomeScreenState extends State<HomeScreen> {
     ),
   ];
 
+  @override
+  void initState() {
+    super.initState();
+    _loadUser();
+  }
+
+  Future<void> _loadUser() async {
+    final name = await AuthService.currentUserName();
+    final role = await AuthService.currentUserRole();
+    if (mounted) setState(() { _userName = name; _userRole = role; });
+  }
+
+  String get _firstName {
+    if (_userName == null) return 'there';
+    return _userName!.split(' ').first;
+  }
+
   String get _greeting {
     final h = DateTime.now().hour;
     if (h < 12) return 'Good morning';
@@ -145,6 +171,42 @@ class _HomeScreenState extends State<HomeScreen> {
     return '${days[dt.weekday - 1]}, ${months[dt.month - 1]} ${dt.day}';
   }
 
+  // Returns stat chips relevant to the logged-in role.
+  List<({IconData icon, String label, Color color, String? route})> get _statChips {
+    switch (_userRole) {
+      case 'Club Leader':
+        return [
+          (icon: Icons.groups_rounded,        label: '2 clubs led',      color: const Color(0xFFF9A825), route: CommunitiesScreen.routeName),
+          (icon: Icons.timer_rounded,          label: '3 deadlines',      color: Colors.redAccent,        route: OpportunitiesScreen.routeName),
+          (icon: Icons.dynamic_feed_rounded,   label: '12 new posts',     color: const Color(0xFF42A5F5), route: null),
+        ];
+      case 'Event Organizer':
+        return [
+          (icon: Icons.event_available_rounded, label: '1 event this week', color: const Color(0xFFF9A825), route: EventsScreen.routeName),
+          (icon: Icons.timer_rounded,            label: '3 deadlines',       color: Colors.redAccent,        route: OpportunitiesScreen.routeName),
+          (icon: Icons.people_rounded,           label: '47 RSVPs',          color: const Color(0xFF42A5F5), route: EventsScreen.routeName),
+        ];
+      case 'Entrepreneur':
+        return [
+          (icon: Icons.rocket_launch_rounded,  label: '2 pitch events',   color: const Color(0xFFF9A825), route: EventsScreen.routeName),
+          (icon: Icons.timer_rounded,          label: '3 deadlines',      color: Colors.redAccent,        route: OpportunitiesScreen.routeName),
+          (icon: Icons.lightbulb_rounded,      label: '5 opportunities',  color: const Color(0xFF42A5F5), route: OpportunitiesScreen.routeName),
+        ];
+      case 'Academic Team':
+        return [
+          (icon: Icons.menu_book_rounded,      label: '4 resources added', color: const Color(0xFFF9A825), route: null),
+          (icon: Icons.timer_rounded,          label: '3 deadlines',       color: Colors.redAccent,        route: OpportunitiesScreen.routeName),
+          (icon: Icons.dynamic_feed_rounded,   label: '12 new posts',      color: const Color(0xFF42A5F5), route: null),
+        ];
+      default:
+        return [
+          (icon: Icons.event_rounded,          label: '2 events today',   color: const Color(0xFFF9A825), route: EventsScreen.routeName),
+          (icon: Icons.timer_rounded,          label: '3 deadlines',      color: Colors.redAccent,        route: OpportunitiesScreen.routeName),
+          (icon: Icons.dynamic_feed_rounded,   label: '12 new posts',     color: const Color(0xFF42A5F5), route: null),
+        ];
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final col = AppColors.of(context);
@@ -164,8 +226,14 @@ class _HomeScreenState extends State<HomeScreen> {
                   final item   = _feed[i];
                   final isLast = i == _feed.length - 1;
                   Widget card = switch (item.type) {
-                    _ItemType.event       => _EventCard(item: item),
-                    _ItemType.opportunity => _OpportunityCard(item: item),
+                    _ItemType.event       => GestureDetector(
+                        onTap: () => Navigator.pushNamed(context, EventDetailScreen.routeName),
+                        child: _EventCard(item: item),
+                      ),
+                    _ItemType.opportunity => GestureDetector(
+                        onTap: () => Navigator.pushNamed(context, OpportunitiesScreen.routeName),
+                        child: _OpportunityCard(item: item),
+                      ),
                     _ItemType.update      => _UpdateCard(item: item),
                   };
                   return Padding(
@@ -213,43 +281,65 @@ class _HomeScreenState extends State<HomeScreen> {
                         Text(_greeting,
                             style: TextStyle(color: col.textSecondary, fontSize: 15, fontWeight: FontWeight.w500)),
                         const SizedBox(height: 2),
-                        Text('Aline! $_greetingEmoji',
+                        Text('$_firstName! $_greetingEmoji',
                             style: TextStyle(color: col.textPrimary, fontSize: 30, fontWeight: FontWeight.bold, height: 1.1)),
                         const SizedBox(height: 6),
-                        Text(_formatDate(now),
-                            style: TextStyle(color: col.textMuted, fontSize: 13)),
+                        Row(
+                          children: [
+                            if (_userRole != null) ...[
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                                decoration: BoxDecoration(
+                                  color:        col.accent.withValues(alpha: 0.15),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Text(_userRole!,
+                                    style: TextStyle(color: col.accent, fontSize: 11, fontWeight: FontWeight.w600)),
+                              ),
+                              const SizedBox(width: 8),
+                            ],
+                            Text(_formatDate(now),
+                                style: TextStyle(color: col.textMuted, fontSize: 13)),
+                          ],
+                        ),
                       ],
                     ),
                   ),
                   const SizedBox(width: 12),
-                  Column(
-                    children: [
-                      Stack(
+                  GestureDetector(
+                    onTap: () => Navigator.pushNamed(context, NotificationsScreen.routeName),
+                    child: ValueListenableBuilder<int>(
+                      valueListenable: unreadNotificationsNotifier,
+                      builder: (_, count, _) => Stack(
                         clipBehavior: Clip.none,
                         children: [
                           Container(
                             width: 52, height: 52,
                             decoration: BoxDecoration(
-                              shape:  BoxShape.circle,
-                              border: Border.all(color: col.accent, width: 2),
-                              color:  col.surface,
+                              shape: BoxShape.circle,
+                              color: col.surface,
+                              border: Border.all(color: col.border),
                             ),
-                            child: Icon(Icons.person_rounded, color: col.accent, size: 28),
+                            child: Icon(Icons.notifications_rounded, color: col.textPrimary, size: 26),
                           ),
-                          Positioned(
-                            right: 2, top: 2,
-                            child: Container(
-                              width: 12, height: 12,
-                              decoration: BoxDecoration(
-                                color:  Colors.redAccent,
-                                shape:  BoxShape.circle,
-                                border: Border.all(color: col.background, width: 2),
+                          if (count > 0)
+                            Positioned(
+                              right: 2, top: 2,
+                              child: Container(
+                                width: 18, height: 18,
+                                decoration: BoxDecoration(
+                                  color:  Colors.redAccent,
+                                  shape:  BoxShape.circle,
+                                  border: Border.all(color: col.background, width: 2),
+                                ),
+                                child: Center(
+                                  child: Text('$count', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
+                                ),
                               ),
                             ),
-                          ),
                         ],
                       ),
-                    ],
+                    ),
                   ),
                 ],
               ),
@@ -258,11 +348,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 scrollDirection: Axis.horizontal,
                 child: Row(
                   children: [
-                    _StatChip(col: col, icon: Icons.event_rounded,        label: '2 events today', color: const Color(0xFFF9A825)),
-                    const SizedBox(width: 8),
-                    _StatChip(col: col, icon: Icons.timer_rounded,        label: '3 deadlines',    color: Colors.redAccent),
-                    const SizedBox(width: 8),
-                    _StatChip(col: col, icon: Icons.dynamic_feed_rounded, label: '12 new posts',   color: const Color(0xFF42A5F5)),
+                    for (int i = 0; i < _statChips.length; i++) ...[
+                      if (i > 0) const SizedBox(width: 8),
+                      _StatChip(
+                        col:   col,
+                        icon:  _statChips[i].icon,
+                        label: _statChips[i].label,
+                        color: _statChips[i].color,
+                        route: _statChips[i].route,
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -313,74 +408,77 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           ),
           const SizedBox(height: 14),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(24),
-            child: Stack(
-              children: [
-                Image.network(
-                  'https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=900&q=80',
-                  height: 200,
-                  width:  double.infinity,
-                  fit:    BoxFit.cover,
-                  errorBuilder: (_, _, _) => Container(height: 200, color: col.surface),
-                ),
-                const Positioned.fill(
-                  child: DecoratedBox(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Color(0xEE000000), Color(0x33000000)],
-                        begin:  Alignment.bottomCenter,
-                        end:    Alignment.topCenter,
+          GestureDetector(
+            onTap: () => Navigator.pushNamed(context, EventDetailScreen.routeName),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(24),
+              child: Stack(
+                children: [
+                  Image.network(
+                    'https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&w=900&q=80',
+                    height: 200,
+                    width:  double.infinity,
+                    fit:    BoxFit.cover,
+                    errorBuilder: (_, _, _) => Container(height: 200, color: col.surface),
+                  ),
+                  const Positioned.fill(
+                    child: DecoratedBox(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Color(0xEE000000), Color(0x33000000)],
+                          begin:  Alignment.bottomCenter,
+                          end:    Alignment.topCenter,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                Positioned(
-                  bottom: 16, left: 16, right: 16,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                            decoration: BoxDecoration(color: col.accent, borderRadius: BorderRadius.circular(8)),
-                            child: const Text('ALU ENTREPRENEURSHIP',
-                                style: TextStyle(color: Colors.black, fontSize: 10, fontWeight: FontWeight.bold)),
-                          ),
-                          const Spacer(),
-                          Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                            decoration: BoxDecoration(
-                              color:        Colors.white.withValues(alpha: 0.18),
-                              borderRadius: BorderRadius.circular(8),
+                  Positioned(
+                    bottom: 16, left: 16, right: 16,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(color: col.accent, borderRadius: BorderRadius.circular(8)),
+                              child: const Text('ALU ENTREPRENEURSHIP',
+                                  style: TextStyle(color: Colors.black, fontSize: 10, fontWeight: FontWeight.bold)),
                             ),
-                            child: const Row(
-                              children: [
-                                Icon(Icons.schedule_rounded, color: Colors.white, size: 12),
-                                SizedBox(width: 4),
-                                Text('In 2 days', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
-                              ],
+                            const Spacer(),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color:        Colors.white.withValues(alpha: 0.18),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: const Row(
+                                children: [
+                                  Icon(Icons.schedule_rounded, color: Colors.white, size: 12),
+                                  SizedBox(width: 4),
+                                  Text('In 2 days', style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600)),
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      const Text('Pitch Night',
-                          style: TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold, height: 1.1)),
-                      const SizedBox(height: 5),
-                      const Row(
-                        children: [
-                          Icon(Icons.location_on_rounded, color: Colors.white60, size: 13),
-                          SizedBox(width: 4),
-                          Text('Kigali Campus · May 24, 2026',
-                              style: TextStyle(color: Colors.white60, fontSize: 12)),
-                        ],
-                      ),
-                    ],
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        const Text('Pitch Night',
+                            style: TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold, height: 1.1)),
+                        const SizedBox(height: 5),
+                        const Row(
+                          children: [
+                            Icon(Icons.location_on_rounded, color: Colors.white60, size: 13),
+                            SizedBox(width: 4),
+                            Text('Kigali Campus · May 24, 2026',
+                                style: TextStyle(color: Colors.white60, fontSize: 12)),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ],
@@ -614,10 +712,13 @@ class _OpportunityCardState extends State<_OpportunityCard> {
               const SizedBox(width: 4),
               Text(item.meta, style: TextStyle(color: col.textMuted, fontSize: 12)),
               const Spacer(),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(color: col.accent, borderRadius: BorderRadius.circular(10)),
-                child: const Text('Apply Now', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 12)),
+              GestureDetector(
+                onTap: () => Navigator.pushNamed(context, OpportunitiesScreen.routeName),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(color: col.accent, borderRadius: BorderRadius.circular(10)),
+                  child: const Text('Apply Now', style: TextStyle(color: Colors.black, fontWeight: FontWeight.bold, fontSize: 12)),
+                ),
               ),
             ],
           ),
@@ -728,11 +829,12 @@ class _StatChip extends StatelessWidget {
   final IconData  icon;
   final String    label;
   final Color     color;
-  const _StatChip({required this.col, required this.icon, required this.label, required this.color});
+  final String?   route;
+  const _StatChip({required this.col, required this.icon, required this.label, required this.color, this.route});
 
   @override
   Widget build(BuildContext context) {
-    return Container(
+    final chip = Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
         color:        col.surface,
@@ -747,6 +849,11 @@ class _StatChip extends StatelessWidget {
           Text(label, style: TextStyle(color: col.textPrimary, fontSize: 12, fontWeight: FontWeight.w500)),
         ],
       ),
+    );
+    if (route == null) return chip;
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(context, route!),
+      child: chip,
     );
   }
 }
@@ -765,27 +872,30 @@ class _ClubBubble extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(right: 18),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(
-            width: 54, height: 54,
-            decoration: BoxDecoration(
-              shape:  BoxShape.circle,
-              border: Border.all(color: club.color, width: 2.5),
+    return GestureDetector(
+      onTap: () => Navigator.pushNamed(context, CommunitiesScreen.routeName),
+      child: Padding(
+        padding: const EdgeInsets.only(right: 18),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 54, height: 54,
+              decoration: BoxDecoration(
+                shape:  BoxShape.circle,
+                border: Border.all(color: club.color, width: 2.5),
+              ),
+              child: CircleAvatar(
+                backgroundColor: club.color.withValues(alpha: 0.12),
+                child: Icon(club.icon, color: club.color, size: 22),
+              ),
             ),
-            child: CircleAvatar(
-              backgroundColor: club.color.withValues(alpha: 0.12),
-              child: Icon(club.icon, color: club.color, size: 22),
-            ),
-          ),
-          const SizedBox(height: 6),
-          Text(club.name,
-              style: TextStyle(color: col.textSecondary, fontSize: 10),
-              overflow: TextOverflow.ellipsis),
-        ],
+            const SizedBox(height: 6),
+            Text(club.name,
+                style: TextStyle(color: col.textSecondary, fontSize: 10),
+                overflow: TextOverflow.ellipsis),
+          ],
+        ),
       ),
     );
   }
