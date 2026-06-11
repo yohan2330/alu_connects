@@ -115,7 +115,7 @@ class _AluSignInScreenState extends State<AluSignInScreen> {
                       )
                     : const Text('Sign In'),
               ),
-              ,
+              const SizedBox(height: 16),
               TextButton(
                 onPressed: _isLoading ? null : () => Navigator.pop(context),
                 child: const Text(
