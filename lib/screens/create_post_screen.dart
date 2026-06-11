@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'package:intl/intl.dart';
 import '../services/auth_service.dart';
 import '../theme.dart';
 
@@ -12,7 +15,88 @@ class CreatePostScreen extends StatefulWidget {
 }
 
 class _CreatePostScreenState extends State<CreatePostScreen> {
-  bool _isEvent = true;
+  final List<String> _postCategories = [
+    'Event',
+    'Hackathon',
+    'Workshop',
+    'Startup Initiative',
+    'Leadership Program',
+    'Internship',
+    'Community Announcement',
+  ];
+  String _selectedCategory = 'Event';
+  File? _selectedImage;
+  DateTime? _selectedDate;
+  TimeOfDay? _selectedTime = const TimeOfDay(hour: 9, minute: 0);
+  final ImagePicker _imagePicker = ImagePicker();
+
+  Future<void> _pickImage() async {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => SafeArea(
+        child: Wrap(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.photo_library),
+              title: const Text('Pick from Gallery'),
+              onTap: () async {
+                Navigator.pop(context);
+                final XFile? image = await _imagePicker.pickImage(
+                  source: ImageSource.gallery,
+                );
+                if (image != null) {
+                  setState(() {
+                    _selectedImage = File(image.path);
+                  });
+                }
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.camera_alt),
+              title: const Text('Take a Photo'),
+              onTap: () async {
+                Navigator.pop(context);
+                final XFile? image = await _imagePicker.pickImage(
+                  source: ImageSource.camera,
+                );
+                if (image != null) {
+                  setState(() {
+                    _selectedImage = File(image.path);
+                  });
+                }
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _selectDate() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate ?? DateTime.now(),
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
+
+  Future<void> _selectTime() async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _selectedTime ?? const TimeOfDay(hour: 9, minute: 0),
+    );
+    if (picked != null && picked != _selectedTime) {
+      setState(() {
+        _selectedTime = picked;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,14 +125,6 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Row(
-                    children: [
-                      _buildToggleButton('Event', true),
-                      const SizedBox(width: 12),
-                      _buildToggleButton('Opportunity', false),
-                    ],
-                  ),
-                  const SizedBox(height: 24),
                   if (!canPost)
                     Container(
                       width: double.infinity,
@@ -59,11 +135,43 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                         border: Border.all(color: AppColors.border),
                       ),
                       child: const Text(
-                        'Only authorized roles can publish posts. Sign in as a club leader, event organizer, entrepreneur, student community, or academic team member.',
+                        'Only authorized roles can publish community activities and opportunities. Sign in as a club leader, event organizer, entrepreneur, student community, or academic team member.',
                         style: TextStyle(color: AppColors.textSecondary),
                       ),
                     ),
                   if (!canPost) const SizedBox(height: 24),
+                  const Text(
+                    'Post type',
+                    style: TextStyle(
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  DropdownButtonFormField<String>(
+                    value: _selectedCategory,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      filled: true,
+                      fillColor: AppColors.surface,
+                    ),
+                    items: _postCategories
+                        .map(
+                          (category) => DropdownMenuItem<String>(
+                            value: category,
+                            child: Text(category),
+                          ),
+                        )
+                        .toList(),
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() {
+                          _selectedCategory = value;
+                        });
+                      }
+                    },
+                  ),
+                  const SizedBox(height: 24),
                   _buildCoverCard(),
                   const SizedBox(height: 24),
                   const Text(
@@ -88,7 +196,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   const SizedBox(height: 8),
                   TextField(
                     decoration: const InputDecoration(
-                      hintText: 'Tell the community about it...',
+                      hintText: 'Tell the campus community about it...',
                     ),
                     maxLines: 4,
                   ),
@@ -96,16 +204,28 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   Row(
                     children: [
                       Expanded(
-                        child: _buildInfoCard(
-                          icon: Icons.calendar_month,
-                          label: 'Oct 24, 2023',
+                        child: GestureDetector(
+                          onTap: _selectDate,
+                          child: _buildInfoCard(
+                            icon: Icons.calendar_month,
+                            label: _selectedDate != null
+                                ? DateFormat(
+                                    'MMM dd, yyyy',
+                                  ).format(_selectedDate!)
+                                : 'Select date',
+                          ),
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
-                        child: _buildInfoCard(
-                          icon: Icons.access_time,
-                          label: '09:00 AM',
+                        child: GestureDetector(
+                          onTap: _selectTime,
+                          child: _buildInfoCard(
+                            icon: Icons.access_time,
+                            label: _selectedTime != null
+                                ? _selectedTime!.format(context)
+                                : '09:00 AM',
+                          ),
                         ),
                       ),
                     ],
@@ -127,12 +247,14 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
                   const SizedBox(height: 28),
                   ElevatedButton(
                     onPressed: canPost ? () {} : null,
-                    child: const Row(
+                    child: Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(Icons.upload_file, color: Colors.black),
-                        SizedBox(width: 10),
-                        Text('Publish'),
+                        const Icon(Icons.upload_file, color: Colors.black),
+                        const SizedBox(width: 10),
+                        Text(
+                          canPost ? 'Publish $_selectedCategory' : 'Publish',
+                        ),
                       ],
                     ),
                   ),
@@ -145,54 +267,62 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
     );
   }
 
-  Widget _buildToggleButton(String label, bool selected) {
-    final isActive = _isEvent == selected;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _isEvent = selected),
-        child: Container(
-          height: 50,
-          decoration: BoxDecoration(
-            color: isActive ? AppColors.accent : AppColors.surface,
-            borderRadius: BorderRadius.circular(16),
-          ),
-          alignment: Alignment.center,
-          child: Text(
-            label,
-            style: TextStyle(
-              color: isActive ? Colors.black : AppColors.textSecondary,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
   Widget _buildCoverCard() {
-    return Container(
-      height: 180,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: AppColors.border),
-        color: AppColors.surface,
-      ),
-      child: Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: const [
-            Icon(
-              Icons.add_photo_alternate,
-              size: 36,
-              color: AppColors.textSecondary,
-            ),
-            SizedBox(height: 10),
-            Text(
-              'Add cover image',
-              style: TextStyle(color: AppColors.textSecondary),
-            ),
-          ],
+    return GestureDetector(
+      onTap: _pickImage,
+      child: Container(
+        height: 180,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: AppColors.border),
+          color: AppColors.surface,
+          image: _selectedImage != null
+              ? DecorationImage(
+                  image: FileImage(_selectedImage!),
+                  fit: BoxFit.cover,
+                )
+              : null,
         ),
+        child: _selectedImage == null
+            ? Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: const [
+                    Icon(
+                      Icons.add_photo_alternate,
+                      size: 36,
+                      color: AppColors.textSecondary,
+                    ),
+                    SizedBox(height: 10),
+                    Text(
+                      'Add cover image',
+                      style: TextStyle(color: AppColors.textSecondary),
+                    ),
+                  ],
+                ),
+              )
+            : Stack(
+                children: [
+                  Positioned.fill(
+                    child: Container(
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(20),
+                        color: Colors.black.withOpacity(0.3),
+                      ),
+                    ),
+                  ),
+                  Center(
+                    child: IconButton(
+                      icon: const Icon(
+                        Icons.edit,
+                        color: Colors.white,
+                        size: 32,
+                      ),
+                      onPressed: _pickImage,
+                    ),
+                  ),
+                ],
+              ),
       ),
     );
   }
@@ -218,6 +348,7 @@ class _CreatePostScreenState extends State<CreatePostScreen> {
               ),
             ),
           ),
+          const Icon(Icons.edit, size: 16, color: AppColors.textSecondary),
         ],
       ),
     );
