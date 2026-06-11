@@ -1,4 +1,4 @@
-# ALU Connect Overview
+# ALU Connects Overview
 
 ALU Connect is a Flutter-based platform that brings the ALU community together. It lets you connect with other students, share what's on your mind, discover events happening around campus, and message friends directly.
 
